@@ -6,11 +6,5 @@ class DocRetriever(ABC):
         pass
 
     @abstractmethod
-    def retrieve_similar(self,doc):
+    def retrieve_similar(self,query):
         pass
-
-    @abstractmethod
-    def build(self):
-        pass
-
-    

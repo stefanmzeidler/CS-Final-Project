@@ -8,3 +8,11 @@ class DocRetriever(ABC):
     @abstractmethod
     def retrieve_similar(self,query):
         pass
+
+    @abstractmethod
+    def create_embeddings(self, **kwargs):
+        pass
+
+    @abstractmethod
+    def load_embeddings(self,**kwargs):
+        pass

@@ -2,56 +2,64 @@ from docretriever import DocRetriever
 import json
 import os
 from datasets import load_dataset
-
+import numpy as np
+from pathlib import Path
 from sentence_transformers import SentenceTransformer, util
+import torch
 
 
 # Adapted from https://github.com/huggingface/sentence-transformers/blob/main/examples/sentence_transformer/applications/semantic-search/semantic_search_publications.py
 class STRetriever(DocRetriever):
-    def __init__(self, **kwargs):
+    def __init__(
+        self,
+        model="allenai-specter",
+        dataset="uiyunkim-hub/pubmed-abstract",
+        split="train",
+    ):
         """
-        Constructs a STRetriever object. This object uses a SentenceTransformer to create embeddings and retriever similar documents in the specified corpus.
-        :param kwargs: dataset should be the HF repository namespace and dataset name, e.g., namespace/dataset
-        split should be the dataset split to use. Defaults to train.
-        model_name should be the name of the model to use. Will default to allenai-specter
+        Constructs a STRetriever instance. Use sbert transformer for creating embeddings and find similar documents.
+        :param model: The name of the Sentence Transformers model to use. Default is allenai-specter.
+        :param dataset: The HuggingFace dataset to use. Must be in namespace/dataset format. Default is uiyunkim-hub/pubmed-abstract.
+        :param split: The dataset split to use. Default is train.
         """
-        if "dataset" not in kwargs:
-            raise ValueError("dataset must be provided")
-        if "split" in kwargs:
-            split = kwargs["split"]
-        else:
-            split = "train"
-        if "model_name" in kwargs:
-            self.model = SentenceTransformer(kwargs["model_name"])
-        else:
-            self.model = SentenceTransformer("allenai-specter")
+        self.model = SentenceTransformer(model)
         print("Loading dataset")
-        self.papers = load_dataset(kwargs["dataset"], streaming=True)[split]
+        self.papers = load_dataset(dataset)[split]
         print("Dataset loaded")
-        print("Creating embeddings")
-        paper_texts = [paper["abstract"] for paper in self.papers]
-        self.corpus_embeddings = self.model.encode(paper_texts, convert_to_tensor=True)
-        print("Embeddings created")
+        self.corpus_embeddings = None
 
     def retrieve_similar(self, query):
         # TODO
         ...
 
-    # def load_dataset(self, type, dataset_files):
-    #     match type:
-    #         case "json":
-    #             dataset_file = dataset_files[0]
-    #             if self.model is None:
-    #                 raise Exception("No model loaded")
-    #             if not os.path.exists(dataset_file):
-    #                 raise FileNotFoundError(dataset_file)
-    #             with open(dataset_file) as fIn:
-    #                 self.papers = json.load(fIn)
-    #             if self.papers is None:
-    #                 raise Exception("No papers in dataset")
-    #             print(len(self.papers), "papers loaded")
-    #             paper_texts = [paper["title"] + "[SEP]" + paper["abstract"] for paper in self.papers]
-    #             self.corpus_embeddings = self.model.encode(paper_texts, convert_to_tensor=True)
+    def create_embeddings(self):
+        print("Creating embeddings")
+        paper_texts = [paper["abstract"] for paper in self.papers]
+        self.corpus_embeddings = self.model.encode_document(
+            paper_texts, convert_to_tensor=True
+        )
+        print("Embeddings created")
+        print("Saving embeddings")
+        embeddings_path = STRetriever.get_embeddings_path()
+        with open(
+            os.path.join(embeddings_path, "embeddings.pt"), "wb"
+        ) as embeddings_file:
+            torch.save(self.corpus_embeddings, embeddings_file)
+        print("Embeddings saved")
+
+    def load_embeddings(self, **kwargs):
+        embeddings_path = STRetriever.get_embeddings_path()
+        with open(
+            os.path.join(embeddings_path, "embeddings.pt"), "wb"
+        ) as embeddings_file:
+            self.corpus_embeddings = torch.load(embeddings_file)
+
+    @staticmethod
+    def get_embeddings_path():
+        project_root = Path(__file__).resolve().parent
+        with open(project_root / "config.json", "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+        return project_root / cfg["paths"]["data"]["embeddings"]
 
     def search_papers(self, title, abstract):
         query_embedding = self.model.encode(
@@ -66,3 +74,4 @@ class STRetriever(DocRetriever):
 
 
 my_retriever = STRetriever(dataset="uiyunkim-hub/pubmed-abstract")
+my_retriever.create_embeddings()

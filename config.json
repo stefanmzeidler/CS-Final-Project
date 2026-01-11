@@ -1,7 +1,8 @@
 {
 	"paths":{
 		"data":{
-			"embeddings": "data/embeddings"
+			"embeddings": "data/embeddings",
+            "datasets": "data/datasets"
 		}
 	}
 }

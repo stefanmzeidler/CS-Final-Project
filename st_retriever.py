@@ -1,7 +1,7 @@
 from docretriever import DocRetriever
 import json
 import os
-from datasets import load_dataset
+from datasets import load_dataset,load_from_disk
 import numpy as np
 from pathlib import Path
 from sentence_transformers import SentenceTransformer, util
@@ -15,16 +15,24 @@ class STRetriever(DocRetriever):
         model="allenai-specter",
         dataset="uiyunkim-hub/pubmed-abstract",
         split="train",
+        load_local=False
     ):
         """
         Constructs a STRetriever instance. Use sbert transformer for creating embeddings and find similar documents.
         :param model: The name of the Sentence Transformers model to use. Default is allenai-specter.
-        :param dataset: The HuggingFace dataset to use. Must be in namespace/dataset format. Default is uiyunkim-hub/pubmed-abstract.
+        :param dataset: The dataset to use. If from_disk is true, searches for an existing dataset file. Otherwise, should be the HuggingFace dataset to use. Must be in namespace/dataset format. Default is uiyunkim-hub/pubmed-abstract.
         :param split: The dataset split to use. Default is train.
+        :param load_local: Whether to load the dataset from disk. Default is False.
         """
+        print("Loading model")
         self.model = SentenceTransformer(model)
+        print("Model loaded")
         print("Loading dataset")
-        self.papers = load_dataset(dataset)[split]
+        if load_local:
+            self.papers = load_from_disk(STRetriever.get_data_path("datasets"))
+        else:
+            self.papers = load_dataset(dataset)[split]
+            self.papers.save_to_disk(dataset_path = STRetriever.get_data_path("datasets"),max_shard_size="100MB")
         print("Dataset loaded")
         self.corpus_embeddings = None
 
@@ -40,7 +48,7 @@ class STRetriever(DocRetriever):
         )
         print("Embeddings created")
         print("Saving embeddings")
-        embeddings_path = STRetriever.get_embeddings_path()
+        embeddings_path = STRetriever.get_data_path("embeddings")
         with open(
             os.path.join(embeddings_path, "embeddings.pt"), "wb"
         ) as embeddings_file:
@@ -48,18 +56,13 @@ class STRetriever(DocRetriever):
         print("Embeddings saved")
 
     def load_embeddings(self, **kwargs):
-        embeddings_path = STRetriever.get_embeddings_path()
+        embeddings_path = STRetriever.get_data_path("embeddings")
         with open(
             os.path.join(embeddings_path, "embeddings.pt"), "wb"
         ) as embeddings_file:
             self.corpus_embeddings = torch.load(embeddings_file)
 
-    @staticmethod
-    def get_embeddings_path():
-        project_root = Path(__file__).resolve().parent
-        with open(project_root / "config.json", "r", encoding="utf-8") as f:
-            cfg = json.load(f)
-        return project_root / cfg["paths"]["data"]["embeddings"]
+
 
     def search_papers(self, title, abstract):
         query_embedding = self.model.encode(
@@ -73,5 +76,5 @@ class STRetriever(DocRetriever):
         return related_papers
 
 
-my_retriever = STRetriever(dataset="uiyunkim-hub/pubmed-abstract")
-my_retriever.create_embeddings()
+my_retriever = STRetriever(dataset="uiyunkim-hub/pubmed-abstract", load_local= True)
+# my_retriever.create_embeddings()

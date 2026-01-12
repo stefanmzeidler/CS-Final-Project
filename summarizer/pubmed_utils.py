@@ -1,10 +1,10 @@
 from Bio import Entrez
 import os
 from dotenv import load_dotenv
+from datasets import load_dataset
 
 def get_article(pmid):
     load_dotenv()
-
     Entrez.email = os.getenv("ENTREZ_EMAIL")
     handle = Entrez.efetch(db="pubmed",return_type ="medline", id=pmid)
     record = Entrez.read(handle)
@@ -18,6 +18,7 @@ def pmid_to_pmcid(pmid: str) -> str | None:
         id=pmid
     )
     record = Entrez.read(handle)
+
     handle.close()
 
     try:
@@ -26,7 +27,7 @@ def pmid_to_pmcid(pmid: str) -> str | None:
         return None
 
 
+
+
 article = get_article("19304878")
-print(article)
-
-
+print(article["PubmedArticle"][0]["MedlineCitation"]["Article"]["Abstract"]["AbstractText"][0])

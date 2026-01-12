@@ -67,11 +67,10 @@ class STRetriever(DocRetriever):
 
 
     def load_embeddings(self, **kwargs):
+        print("Loading embeddings")
         embeddings_path = STRetriever.get_data_path("embeddings")
-        with open(
-            os.path.join(embeddings_path, "embeddings.pt"), "wb"
-        ) as embeddings_file:
-            self.corpus_embeddings = torch.load(embeddings_file)
+        self.corpus_embeddings = torch.load(f=os.path.join(embeddings_path, "embeddings.pt"))
+        print("Embeddings loaded")
 
 
 
@@ -88,4 +87,5 @@ class STRetriever(DocRetriever):
 
 if __name__ == "__main__":
     my_retriever = STRetriever(dataset="uiyunkim-hub/pubmed-abstract", load_local= True)
-    my_retriever.create_embeddings(100000)
+    my_retriever.create_embeddings(max_papers=10000)
+    my_retriever.load_embeddings()

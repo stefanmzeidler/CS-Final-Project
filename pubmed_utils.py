@@ -1,8 +1,4 @@
 from Bio import Entrez
-import json
-from pathlib import Path
-import xmltodict
-from torchgen.api.cpp import return_type
 import os
 from dotenv import load_dotenv
 

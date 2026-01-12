@@ -1,9 +1,10 @@
 from Bio import Entrez
 import os
-from dotenv import load_dotenv
-from datasets import load_dataset
 
-def get_article(pmid):
+from Bio.Entrez.Parser import DictionaryElement
+from dotenv import load_dotenv
+
+def get_article(pmid:str) -> DictionaryElement:
     load_dotenv()
     Entrez.email = os.getenv("ENTREZ_EMAIL")
     handle = Entrez.efetch(db="pubmed",return_type ="medline", id=pmid)

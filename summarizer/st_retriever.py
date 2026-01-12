@@ -7,6 +7,7 @@ import torch
 from torch import Tensor
 from typing import List, Generator
 import dataset_utils as du
+from pathlib import Path
 
 
 # Adapted from https://github.com/huggingface/sentence-transformers/blob/main/examples/sentence_transformer/applications/semantic-search/semantic_search_publications.py
@@ -15,26 +16,32 @@ class STRetriever(DocRetriever):
     def __init__(
             self,
             model="allenai-specter",
-            dataset="uiyunkim-hub/pubmed-abstract",
+            dataset_name="uiyunkim-hub/pubmed-abstract",
             split="train",
+            data_columns= None,
             load_local=False
     ):
         """
         Constructs a STRetriever instance. Use sbert transformer for creating embeddings and find similar documents.
         :param model: The name of the Sentence Transformers model to use. Default is allenai-specter.
-        :param dataset: The dataset to use. If from_disk is true, searches for an existing dataset file. Otherwise, should be the HuggingFace dataset to use. Must be in namespace/dataset format. Default is uiyunkim-hub/pubmed-abstract.
+        :param dataset_name: The name of the dataset to use. If load_local is true, searches for an existing dataset. Otherwise, should be the HuggingFace dataset to use. Must be in namespace/dataset format. Default is uiyunkim-hub/pubmed-abstract.
         :param split: The dataset split to use. Default is train.
         :param load_local: Whether to load the dataset from disk. Default is False.
         """
+        if data_columns is None:
+            self.data_columns = ["abstract"]
+        else:
+            self.data_columns = data_columns
+        self.dataset_name = dataset_name
         print("Loading model")
         self.model = SentenceTransformer(model)
         print("Model loaded")
         print("Loading dataset")
         if load_local:
-            self.papers = load_from_disk(du.get_data_path("datasets"))
+            self.papers = du.load_local(self.dataset_name, "dataset")
         else:
-            self.papers = load_dataset(dataset)[split]
-            self.papers.save_to_disk(dataset_path=du.get_data_path("datasets"), max_shard_size="100MB")
+            self.papers = load_dataset(self.dataset_name)[split]
+            self.papers.save_to_disk(dataset_path=du.get_data_path(self.dataset_name, "dataset"), max_shard_size="100MB")
         print("Dataset loaded")
         self.corpus_embeddings = None
 
@@ -50,7 +57,10 @@ class STRetriever(DocRetriever):
 
     def _yield_text(self) -> Generator[str | List[str],None,None]:
         for paper in self.papers:
-            yield paper["abstract"]
+            sections = []
+            for col in self.data_columns:
+                sections.append(paper[col])
+            yield "[SEP]".join(sections)
 
     def create_corpus_embeddings(self, max_papers: int):
         print("Generating corpus embeddings")
@@ -74,11 +84,10 @@ class STRetriever(DocRetriever):
 
     def load_embeddings(self):
         print("Loading embeddings")
-        embeddings_path = du.get_data_path("embeddings")
-        self.corpus_embeddings = torch.load(f=os.path.join(embeddings_path, "embeddings.pt"))
+        self.corpus_embeddings =  du.load_local(dataset_name = self.dataset_name, data_type="dataset")
         print("Embeddings loaded")
 
 if __name__ == "__main__":
-    my_retriever = STRetriever(load_local=True)
-    # my_retriever.create_corpus_embeddings(max_papers=10000)
+    my_retriever = STRetriever(dataset_name="pubmed abstract", load_local=True)
+    # my_retriever.create_corpus_embeddings(max_papers=100)
     my_retriever.load_embeddings()

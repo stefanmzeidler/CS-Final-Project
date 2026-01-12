@@ -9,6 +9,7 @@ import torch
 
 
 # Adapted from https://github.com/huggingface/sentence-transformers/blob/main/examples/sentence_transformer/applications/semantic-search/semantic_search_publications.py
+# https://github.com/huggingface/sentence-transformers/blob/main/examples/sentence_transformer/applications/computing-embeddings/computing_embeddings_multi_gpu.py
 class STRetriever(DocRetriever):
     def __init__(
         self,
@@ -40,20 +41,34 @@ class STRetriever(DocRetriever):
         # TODO
         ...
 
+    def _yield_text(self):
+        for paper in self.papers:
+            yield paper["abstract"]
+
     def create_embeddings(self):
         print("Creating embeddings")
-        paper_texts = [paper["abstract"] for paper in self.papers]
-        self.corpus_embeddings = self.model.encode_document(
-            paper_texts, convert_to_tensor=True
-        )
-        print("Embeddings created")
-        print("Saving embeddings")
+        # paper_texts = [paper["abstract"] for paper in self.papers]
+        pool = self.model.start_multi_process_pool(["cuda:0","cuda:1","cuda:2","cuda:3","cuda:4","cuda:5","cuda:6","cuda:7","cuda:8","cuda:9","cuda:10"])
+        batch = []
+        shard_index = 0
+        batch_size = 512
         embeddings_path = STRetriever.get_data_path("embeddings")
-        with open(
-            os.path.join(embeddings_path, "embeddings.pt"), "wb"
-        ) as embeddings_file:
-            torch.save(self.corpus_embeddings, embeddings_file)
+        for text in self._yield_text():
+            batch.append(text)
+            if len(batch) >= batch_size:
+                self._create_embeddings_shard(batch,shard_index,pool,embeddings_path)
+                shard_index += 1
+                batch.clear()
+        if len(batch) > 0:
+            self._create_embeddings_shard(batch,shard_index,pool,embeddings_path)
         print("Embeddings saved")
+        self.model.stop_multi_process_pool(pool)
+
+    def _create_embeddings_shard(self, batch, shard_index,pool,embeddings_path):
+        self.corpus_embeddings = self.model.encode_document(sentences = batch,pool=pool, convert_to_tensor=True,show_progress_bar=True)
+        torch.save(self.corpus_embeddings, os.path.join(embeddings_path, f"embeddings_{shard_index}.pt"))
+
+
 
     def load_embeddings(self, **kwargs):
         embeddings_path = STRetriever.get_data_path("embeddings")
@@ -75,6 +90,6 @@ class STRetriever(DocRetriever):
             related_papers.append(self.papers[hit["corpus_id"]])
         return related_papers
 
-
-my_retriever = STRetriever(dataset="uiyunkim-hub/pubmed-abstract", load_local= True)
-# my_retriever.create_embeddings()
+if __name__ == "__main__":
+    my_retriever = STRetriever(dataset="uiyunkim-hub/pubmed-abstract", load_local= True)
+    my_retriever.create_embeddings()

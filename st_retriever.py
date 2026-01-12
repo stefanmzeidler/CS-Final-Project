@@ -45,27 +45,23 @@ class STRetriever(DocRetriever):
         for paper in self.papers:
             yield paper["abstract"]
 
-    def create_embeddings(self):
+    def create_embeddings(self,max_papers):
         print("Creating embeddings")
         # paper_texts = [paper["abstract"] for paper in self.papers]
-        pool = self.model.start_multi_process_pool(["cuda:0","cuda:1","cuda:2","cuda:3","cuda:4","cuda:5","cuda:6","cuda:7","cuda:8","cuda:9","cuda:10"])
-        batch = []
-        shard_index = 0
-        batch_size = 512
+        paper_texts = []
+        for index, text in enumerate(self._yield_text()):
+            paper_texts.append(text)
+            if index >= max_papers:
+                break
+        pool = self.model.start_multi_process_pool()
         embeddings_path = STRetriever.get_data_path("embeddings")
-        for text in self._yield_text():
-            batch.append(text)
-            if len(batch) >= batch_size:
-                self._create_embeddings_shard(batch,shard_index,pool,embeddings_path)
-                shard_index += 1
-                batch.clear()
-        if len(batch) > 0:
-            self._create_embeddings_shard(batch,shard_index,pool,embeddings_path)
+        self.corpus_embeddings = self.model.encode_document(sentences = paper_texts,pool=pool, normalize_embeddings=True, convert_to_tensor=True,show_progress_bar=True)
+        torch.save(self.corpus_embeddings, os.path.join(embeddings_path, "embeddings.pt"))
         print("Embeddings saved")
         self.model.stop_multi_process_pool(pool)
 
     def _create_embeddings_shard(self, batch, shard_index,pool,embeddings_path):
-        self.corpus_embeddings = self.model.encode_document(sentences = batch,pool=pool, convert_to_tensor=True,show_progress_bar=True)
+        self.corpus_embeddings = self.model.encode_document(sentences = batch,pool=pool, normalize_embeddings=True, convert_to_tensor=True,show_progress_bar=True)
         torch.save(self.corpus_embeddings, os.path.join(embeddings_path, f"embeddings_{shard_index}.pt"))
 
 
@@ -92,4 +88,4 @@ class STRetriever(DocRetriever):
 
 if __name__ == "__main__":
     my_retriever = STRetriever(dataset="uiyunkim-hub/pubmed-abstract", load_local= True)
-    my_retriever.create_embeddings()
+    my_retriever.create_embeddings(100000)

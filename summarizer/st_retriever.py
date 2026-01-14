@@ -5,7 +5,7 @@ from numpy import ndarray
 from sentence_transformers import SentenceTransformer, util
 import torch
 from torch import Tensor
-from typing import List, Generator
+from typing import List, Generator, Any
 import dataset_utils as du
 from pathlib import Path
 
@@ -45,7 +45,12 @@ class STRetriever(DocRetriever):
         print("Dataset loaded")
         self.corpus_embeddings = None
 
-    def retrieve_similar(self, query: str| List[str]):
+    def retrieve_similar(self, query: str| List[str]) -> list[Any]:
+        """
+        Given a document, return a list of top 10 similar documents.
+        :param query: The document query to search for.
+        :return: List of related documents from the retriever dataset.
+        """
         query_embeddings = self._get_embeddings(query)
         hits = util.semantic_search(query_embeddings, self.corpus_embeddings, score_function=util.dot_score)
         hits = hits[0]

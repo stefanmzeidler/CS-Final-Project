@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import List, Generator, Any
 
 
 class DocRetriever(ABC):
@@ -7,7 +8,12 @@ class DocRetriever(ABC):
         pass
 
     @abstractmethod
-    def retrieve_similar(self,query):
+    def retrieve_similar(self,query) -> List[Any]:
+        """
+        Given a document, return a list of top 10 similar documents.
+        :param query: The document query to search for.
+        :return: List of related documents from the retriever dataset.
+        """
         pass
 
     @abstractmethod

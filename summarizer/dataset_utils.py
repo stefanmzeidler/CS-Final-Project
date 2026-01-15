@@ -19,12 +19,15 @@ def xml_to_arrow(source: str | Path, target: str | Path, max_shard_size = "100MB
             return None if len(text_list) == 0 else " ".join(text_list).strip()
 
         for xml_file in Path(xml_dir).rglob("*.xml"):
-            xml_file = str(xml_file)
-            root = etree.parse(xml_file).getroot()
-            pmcid = check_text(root.xpath("//article-id[@pub-id-type='pmc']//text()"))
-            title = check_text(root.xpath("//title-group/article-title/text()"))
-            abstract = check_text(root.xpath("//abstract/p/text()"))
-            body_text = check_text(root.xpath("//body//text()"))
+            try:
+                xml_file = str(xml_file)
+                root = etree.parse(xml_file).getroot()
+                pmcid = check_text(root.xpath("//article-id[@pub-id-type='pmc']//text()"))
+                title = check_text(root.xpath("//title-group/article-title/text()"))
+                abstract = check_text(root.xpath("//abstract/p/text()"))
+                body_text = check_text(root.xpath("//body//text()"))
+            except Exception():
+                continue
             if not pmcid or not title or not abstract or not body_text:
                 continue
             yield {
@@ -56,5 +59,5 @@ def load_local(dataset_name: str, data_type: str) -> Dataset | DatasetDict | Any
         else torch.load(path / "embeddings.pt")
     )
 
-ds = xml_to_arrow(r"C:\Users\School\Documents\PMC\xml\PMC010xxxxxx", r"C:\Users\School\Documents\Processed\PMC010xxxxxx")
-print(ds[0])
+data = xml_to_arrow(r"C:\Users\School\Documents\PMC\xml\PMC010xxxxxx", r"C:\Users\School\Documents\Processed\PMC010xxxxxx")
+

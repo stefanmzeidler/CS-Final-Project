@@ -1,6 +1,6 @@
 from docretriever import DocRetriever
 import os
-from datasets import load_dataset, load_from_disk
+from datasets import load_dataset, IterableDataset
 from numpy import ndarray
 from sentence_transformers import SentenceTransformer, util
 import torch
@@ -40,7 +40,7 @@ class STRetriever(DocRetriever):
         if load_local:
             self.papers = du.load_local(self.dataset_name, "dataset")
         else:
-            self.papers = load_dataset(self.dataset_name)[split]
+            self.papers = load_dataset(self.dataset_name, streaming = True)[split]
             self.papers.save_to_disk(dataset_path=du.get_data_path(self.dataset_name, "dataset"), max_shard_size="100MB")
         print("Dataset loaded")
         self.corpus_embeddings = None
@@ -59,26 +59,29 @@ class STRetriever(DocRetriever):
             related_papers.append(self.papers.select[hit["corpus_id"]])
         return related_papers
 
-
-    def _yield_text(self) -> Generator[str | List[str],None,None]:
+    def _yield_text(self) -> Generator[str | List[str], None, None]:
         for paper in self.papers:
             sections = []
             for col in self.data_columns:
                 sections.append(paper[col])
             yield "[SEP]".join(sections)
 
-    def create_corpus_embeddings(self, max_papers: int):
+    def create_corpus_embeddings(self, max_papers: int = None):
         print("Generating corpus embeddings")
         paper_texts = []
+        if max_papers is None:
+            max_papers = self.papers.shape[0]
         for index, text in enumerate(self._yield_text()):
             paper_texts.append(text)
             if index >= max_papers:
                 break
         self.corpus_embeddings = self._get_embeddings(paper_texts)
-        torch.save(self.corpus_embeddings, os.path.join(du.get_data_path("embeddings"), "embeddings.pt"))
+        embeddings_path = du.get_data_path(self.dataset_name, "embeddings")
+        embeddings_path.mkdir(parents=True, exist_ok=True)
+        torch.save(self.corpus_embeddings, os.path.join(embeddings_path, "embeddings.pt"))
         print("Corpus embeddings saved to disk")
 
-    def _get_embeddings(self, paper_texts: str| List[str]) -> List[Tensor]| ndarray| Tensor:
+    def _get_embeddings(self, paper_texts: str| List[str] | IterableDataset) -> List[Tensor]| ndarray| Tensor:
         print("Creating embeddings")
         pool = self.model.start_multi_process_pool()
         embeddings = self.model.encode_document(sentences=paper_texts, pool=pool, normalize_embeddings=True,
@@ -93,6 +96,6 @@ class STRetriever(DocRetriever):
         print("Embeddings loaded")
 
 if __name__ == "__main__":
-    my_retriever = STRetriever(dataset_name="pubmed abstract", load_local=True)
-    # my_retriever.create_corpus_embeddings(max_papers=100)
+    my_retriever = STRetriever(dataset_name="PMC010xxxxxx", load_local=True)
+    # my_retriever.create_corpus_embeddings()
     my_retriever.load_embeddings()

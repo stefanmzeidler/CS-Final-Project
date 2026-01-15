@@ -21,10 +21,11 @@ def xml_to_arrow(source: str | Path, target: str | Path, max_shard_size = "100MB
         for xml_file in Path(xml_dir).rglob("*.xml"):
             xml_file = str(xml_file)
             root = etree.parse(xml_file).getroot()
-            if (not (pmcid := check_text(root.xpath("//article-id[@pub-id-type='pmc']//text()")))
-                    or not (title := check_text(root.xpath("//title-group/article-title/text()")))
-                    or not (abstract := check_text(root.xpath("//abstract/p/text()")))
-                    or not (body_text := check_text(root.xpath("//body//text()")))):
+            pmcid = check_text(root.xpath("//article-id[@pub-id-type='pmc']//text()"))
+            title = check_text(root.xpath("//title-group/article-title/text()"))
+            abstract = check_text(root.xpath("//abstract/p/text()"))
+            body_text = check_text(root.xpath("//body//text()"))
+            if not pmcid or not title or not abstract or not body_text:
                 continue
             yield {
                 "pmcid": pmcid,

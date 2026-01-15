@@ -4,6 +4,7 @@ from datasets import load_from_disk, Dataset, DatasetDict
 from pathlib import Path
 import json
 import torch
+import lxml
 from lxml import etree
 
 
@@ -26,7 +27,7 @@ def xml_to_arrow(source: str | Path, target: str | Path, max_shard_size = "100MB
                 title = check_text(root.xpath("//title-group/article-title/text()"))
                 abstract = check_text(root.xpath("//abstract/p/text()"))
                 body_text = check_text(root.xpath("//body//text()"))
-            except Exception():
+            except lxml.etree.XMLSyntaxError:
                 continue
             if not pmcid or not title or not abstract or not body_text:
                 continue
@@ -36,7 +37,7 @@ def xml_to_arrow(source: str | Path, target: str | Path, max_shard_size = "100MB
                 "abstract": abstract,
                 "body_text": body_text,
             }
-    ds = Dataset.from_generator(iter_pmc_articles, cache_dir=r"C:\Users\School\Documents\cache", gen_kwargs = {"xml_dir": source})
+    ds = Dataset.from_generator(iter_pmc_articles, gen_kwargs = {"xml_dir": source})
     ds.save_to_disk(target,max_shard_size = max_shard_size)
     return ds
 
@@ -58,6 +59,4 @@ def load_local(dataset_name: str, data_type: str) -> Dataset | DatasetDict | Any
         if data_type == "dataset"
         else torch.load(path / "embeddings.pt")
     )
-
-data = xml_to_arrow(r"C:\Users\School\Documents\PMC\xml\PMC010xxxxxx", r"C:\Users\School\Documents\Processed\PMC010xxxxxx")
 

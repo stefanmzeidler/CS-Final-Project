@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+#dataset extensions
+*.pt
+*.arrow
+*.parquet
+
 # Distribution / packaging
 .Python
 build/

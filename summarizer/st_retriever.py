@@ -13,14 +13,14 @@ import numpy as np
 
 # Adapted from https://github.com/huggingface/sentence-transformers/blob/main/examples/sentence_transformer/applications/semantic-search/semantic_search_publications.py
 # https://github.com/huggingface/sentence-transformers/blob/main/examples/sentence_transformer/applications/computing-embeddings/computing_embeddings_multi_gpu.py
-class STRetriever():
+class STRetriever(DocRetriever):
     def __init__(
             self,
             model="allenai-specter",
-            dataset_name="uiyunkim-hub/pubmed-abstract",
+            dataset_name="PMC010xxxxxx",
             split="train",
             data_columns= None,
-            load_local=False
+            load_local=True
     ):
         """
         Constructs a STRetriever instance. Use sbert transformer for creating embeddings and find similar documents.
@@ -30,7 +30,7 @@ class STRetriever():
         :param load_local: Whether to load the dataset from disk. Default is False.
         """
         if data_columns is None:
-            self.data_columns = ["abstract"]
+            self.data_columns = ["title", "abstract", "body_text"]
         else:
             self.data_columns = data_columns
         self.dataset_name = dataset_name
@@ -49,24 +49,24 @@ class STRetriever():
         print("Index created")
         self.corpus_embeddings = None
 
-    def retrieve_similar(self, pmcid) -> list[Any]:
-        """
-        :param pmcid: The pmcid of the article  to find similar articles for.
-        :return: List of top 10 similar documents.
-        """
-        query = self.query_from_pmcid(pmcid)
+    def retrieve_similar(self, pmcid:str) -> list[dict[str, str]]:
+        print("Retrieving similar documents")
+        article_text = du.article_to_dict(pmcid)
+        query = " ".join([value for value in article_text.values()])
+        print("Generating query embeddings")
         query_embeddings = self._get_embeddings(query)
+        print("Query embeddings generated")
         hits = util.semantic_search(query_embeddings, self.corpus_embeddings, score_function=util.dot_score)
         hits = hits[0]
         related_papers = []
         for hit in hits:
-            related_papers.append(self.papers[int(hit["corpus_id"])])
-        print(related_papers)
+            related_paper =self.papers[int(hit["corpus_id"])]
+            if related_paper["pmcid"] == pmcid:
+                continue
+            related_papers.append(related_paper)
+        print("Retrieved similar documents")
         return related_papers
 
-    def query_from_pmcid(self, pmcid) -> str:
-        # TODO
-        ...
 
     def _yield_text(self, papers) -> Generator[str | List[str], None, None]:
         for paper in papers:
@@ -103,14 +103,20 @@ class STRetriever():
         self.model.stop_multi_process_pool(pool)
         return embeddings
 
+
     def load_embeddings(self):
-        print("Loading embeddings")
-        self.corpus_embeddings =  du.load_local(dataset_name = self.dataset_name, data_type="embeddings")
-        print("Embeddings loaded")
+        embeddings_path = du.get_data_path(self.dataset_name, "embeddings")
+        if not embeddings_path.exists() or not any(embeddings_path.iterdir()):
+            print("No embeddings found.")
+            self.create_corpus_embeddings()
+        else:
+            print("Loading embeddings")
+            self.corpus_embeddings =  du.load_local(dataset_name = self.dataset_name, data_type="embeddings")
+            print("Embeddings loaded")
 
 if __name__ == "__main__":
-    my_retriever = STRetriever(dataset_name="PMC010xxxxxx", load_local=True, data_columns = ["title", "abstract", "body_text"])
+    my_retriever = STRetriever(dataset_name="Test", load_local=True, data_columns = ["title", "abstract", "body_text"])
     my_retriever.load_embeddings()
-    query_text = r"Energy security concerns require novel greener and more sustainable processes, and Paris Agreement goals have put in motion several measures aligned with the 2050 roadmap strategies and net zero emission goals. Renewable energies are a promising alternative to existing infrastructures, with solar energy one of the most appealing due to its use of the overabundant natural source of energy. Photocatalysis as a simple heterogeneous surface catalytic reaction is well placed to enter the realm of scaling up processes for wide scale implementation. Inspired by natural photosynthesis, artificial water splitting's beauty lies in its simplicity, requiring only light, a catalyst, and water. The bottlenecks to producing a high volume of hydrogen  are several: Reactors with efficient photonic/mass/heat profiles, multifunctional efficient solar‐driven catalysts, and proliferation of pilot devices. Three case studies, developed in Japan, Spain, and France are showcased to emphasize efforts on a pilot and large‐scale examples. In order for solar‐assisted photocatalytic H2 to mature as a solution, the aforementioned bottlenecks must be overcome for the field to advance its technology readiness level, assess the capital expenditure, and enter the market."
-    similar = my_retriever.retrieve_similar(query_text)
-    print(similar)
+    # similar = my_retriever.retrieve_similar("PMC12667371")
+    # for doc in similar:
+    #     print(doc["pmcid"])

@@ -90,12 +90,9 @@ def get_article(pmcid:str)->str:
     handle.close()
     return xml_string
 
-def article_to_string(pmcid:str):
+def article_to_dict(pmcid:str):
     xml_string = get_article(pmcid)
     article_dict = parse_pmc_file(xml_string, xml_string = True)
     return article_dict
 
-
-article = article_to_string("PMC12667371")
-print(article)
 

@@ -49,8 +49,8 @@ class STRetriever(DocRetriever):
         print("Index created")
         self.corpus_embeddings = None
 
-    def retrieve_similar(self, pmcid:str) -> list[dict[str, str]]:
-        print("Retrieving similar documents")
+    def supporting_docs(self, pmcid:str) -> list[dict[str, str]]:
+        print("Retrieving supporting documents")
         article_text = du.article_to_dict(pmcid)
         query = " ".join([value for value in article_text.values()])
         print("Generating query embeddings")
@@ -64,7 +64,7 @@ class STRetriever(DocRetriever):
             if related_paper["pmcid"] == pmcid:
                 continue
             related_papers.append(related_paper)
-        print("Retrieved similar documents")
+        print("Retrieved supporting documents")
         return related_papers
 
 

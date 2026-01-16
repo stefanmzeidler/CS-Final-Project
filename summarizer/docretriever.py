@@ -7,7 +7,7 @@ class DocRetriever(ABC):
         pass
 
     @abstractmethod
-    def retrieve_similar(self, pmcid:str) -> list[dict[str, str]]:
+    def supporting_docs(self, pmcid:str) -> list[dict[str, str]]:
         """
         Retrieves the top 10 similar documents from the dataset to the article specified by pmcid.
         :param pmcid: The pubmed central ID for the article.

@@ -1,18 +1,16 @@
 from abc import ABC, abstractmethod
-from typing import List, Generator, Any
-
+import dataset_utils as du
 
 class DocRetriever(ABC):
     @abstractmethod
-    def __init__(self, **kwargs):
+    def __init__(self, model, dataset_name, split, data_columns, load_local):
         pass
 
     @abstractmethod
-    def retrieve_similar(self,query) -> List[Any]:
+    def retrieve_similar(self, pmcid:str) -> list[dict[str, str]]:
         """
-        Given a document, return a list of top 10 similar documents.
-        :param query: The document query to search for.
-        :return: List of related documents from the retriever dataset.
+        Retrieves the top 10 similar documents from the dataset to the article specified by pmcid.
+        :param pmcid: The pubmed central ID for the article.
         """
         pass
 
@@ -23,3 +21,9 @@ class DocRetriever(ABC):
     @abstractmethod
     def load_embeddings(self,**kwargs):
         pass
+
+    @staticmethod
+    def embeddings_check(self, dataset_name):
+        embeddings_path = du.get_data_path(dataset_name, "embeddings")
+        return embeddings_path.exists() and  any(embeddings_path.iterdir())
+

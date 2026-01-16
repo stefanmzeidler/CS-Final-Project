@@ -30,7 +30,7 @@ def xml_to_arrow(source: str | Path, target: str | Path, max_shard_size = "100MB
     def iter_pmc_articles(xml_dir):
         for xml_file in Path(xml_dir).rglob("*.xml"):
             try:
-                yield parse_pmc_file(xml_file)
+                yield _parse_pmc_file(xml_file)
             except lxml.etree.XMLSyntaxError:
                 continue
             except RuntimeError:
@@ -39,10 +39,13 @@ def xml_to_arrow(source: str | Path, target: str | Path, max_shard_size = "100MB
     ds.save_to_disk(target,max_shard_size = max_shard_size)
     return ds
 
-def parse_pmc_file(xml_file, xml_string = False):
+def _parse_pmc_file(xml_file, xml_string = False):
 
     def check_text(text_list):
-        return None if len(text_list) == 0 else " ".join(text_list).strip()
+        if len(text_list) > 0:
+            cleaned_text = [clean_text(text) for text in text_list]
+            return " ".join(cleaned_text).strip()
+        return None
 
     if xml_string:
         root = etree.fromstring(xml_file)
@@ -82,7 +85,7 @@ def load_local(dataset_name: str, data_type: str) -> Dataset | DatasetDict | Any
         else torch.load(path / "embeddings.pt")
     )
 
-def get_article(pmcid:str)->str:
+def _get_article(pmcid:str)->str:
     load_dotenv()
     Entrez.email = os.getenv("ENTREZ_EMAIL")
     handle = Entrez.efetch(db="pmc",id=pmcid)
@@ -91,8 +94,12 @@ def get_article(pmcid:str)->str:
     return xml_string
 
 def article_to_dict(pmcid:str):
-    xml_string = get_article(pmcid)
-    article_dict = parse_pmc_file(xml_string, xml_string = True)
+    xml_string = _get_article(pmcid)
+    article_dict = _parse_pmc_file(xml_string, xml_string = True)
     return article_dict
+
+def clean_text(text):
+    pattern = r"[\r\n\t]|{.*?}|\\.*?{.*?}"
+    return re.sub(pattern, " ", text)
 
 

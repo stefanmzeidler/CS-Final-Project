@@ -210,3 +210,12 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+/.idea/.gitignore
+/.idea/CS-Final-Project.iml
+/data/PMC010xxxxxx/dataset/dataset_info.json
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/dictionaries/project.xml
+/data/PMC010xxxxxx/dataset/state.json
+/.idea/vcs.xml

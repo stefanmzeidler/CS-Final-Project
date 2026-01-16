@@ -1,11 +1,18 @@
-from abc import ABC, abstractmethod
+from google import genai
+import os
+from dotenv import load_dotenv
 
-class LLM(ABC):
-    @abstractmethod
+class LLM:
     def __init__(self, **kwargs):
-        pass
+        load_dotenv()
+        api_key = os.getenv("GEMINI_API_KEY")
+        self.client = genai.Client(api_key=api_key)
 
-    @abstractmethod
     def prompt(self,doc,similar_docs):
-        pass
-
+        ...
+# if __name__ == "__main__":
+    # load_dotenv()
+    # api_key = os.getenv("GEMINI_API_KEY")
+    # client = genai.Client(api_key = api_key)
+    # response = client.models.generate_content(model="gemini-3-flash-preview", contents="Explain how AI works in a few words")
+    # print(response.text)

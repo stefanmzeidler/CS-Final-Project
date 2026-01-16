@@ -1,0 +1,17 @@
+prompts:
+  summarize_paper:
+    description: "Summarize a biomedical paper for different audiences."
+    system: |
+      You are a biomedical professional.
+      Use the provided documents.
+      Do not provide medical advice.
+
+    template: |
+      Summarize the following paper for a {audience}. Keep it under {max_words} words. Refer to the supporting documents for accuracy.
+
+      Paper:
+      {paper}
+      
+      Supporting documents:
+      {supporting_docs}
+      

@@ -1,5 +1,10 @@
 {
   "paths": {
     "data": "data/{dataset_name}/{data_type}"
+  },
+  "audiences": {
+    "basic" : "lay person with an 8th grade reading level",
+    "college" : "undergraduate pre-medical student",
+    "professional" : "a medical professional"
   }
 }

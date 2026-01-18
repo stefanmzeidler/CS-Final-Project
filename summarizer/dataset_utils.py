@@ -123,7 +123,3 @@ def doc_to_string(doc, include_keys=False):
             article_text.append(f"{key}: {value}")
         return "\n".join(article_text)
     return " ".join(([value for value in doc.values()]))
-
-
-if __name__ == "__main__":
-    print(get_audiences())

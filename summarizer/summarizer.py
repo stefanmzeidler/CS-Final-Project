@@ -53,17 +53,3 @@ class Summarizer:
             query=search_query, supporting_docs=supporting_docs_list, top_k=rerank_top_k
         )
         return supporting_docs_list
-
-
-if __name__ == "__main__":
-    from st_retriever import STRetriever
-
-    my_summarizer = Summarizer(
-        STRetriever(dataset_name="PMC010xxxxxx"), Reranker(), LLM()
-    )
-    summaries = my_summarizer.summarize("PMC10000014")
-    print(summaries)
-    with open("summaries.txt", "a") as f:
-        for value in summaries.values():
-            f.write(value + "\n")
-    print(summaries['college'])

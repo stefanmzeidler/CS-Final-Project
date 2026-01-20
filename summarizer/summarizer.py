@@ -26,9 +26,9 @@ class Summarizer:
         for doc in self.retrieve_and_rerank(
             paper, pmcid, rerank_top_k, retrieval_top_k
         ):
-            supporting_docs.append(du.doc_to_string(doc, include_keys=True))
+            supporting_docs.append(du.dict_to_string(doc, include_keys=True))
         supporting_docs = "\n".join(supporting_docs)
-        llm_query = du.doc_to_string(paper, include_keys=True)
+        llm_query = du.dict_to_string(paper, include_keys=True)
         summaries = self.llm.query_model(
             query=llm_query,
             supporting_docs=supporting_docs,
@@ -45,7 +45,7 @@ class Summarizer:
         rerank_top_k: int,
         retrieval_top_k: int,
     ) -> list[dict[str, str]]:
-        search_query = du.doc_to_string(paper)
+        search_query = du.dict_to_string(paper)
         supporting_docs_list = self.st_retriever.supporting_docs(
             query=search_query, pmcid=pmcid, top_k=retrieval_top_k
         )

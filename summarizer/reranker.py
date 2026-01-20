@@ -10,7 +10,7 @@ class Reranker:
 
     def rerank(self, query:str, supporting_docs:List[Dict[str, str]], top_k:int) ->list[dict[str, str]]:
         print("Re-ranking documents")
-        model_inputs = [[query,du.doc_to_string(doc)] for doc in supporting_docs]
+        model_inputs = [[query, du.dict_to_string(doc)] for doc in supporting_docs]
         scores = self.model.predict(model_inputs,show_progress_bar=True)
         results = [
             {"doc": doc, "score": score} for doc, score in zip(supporting_docs, scores)

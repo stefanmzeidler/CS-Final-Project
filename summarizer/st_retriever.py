@@ -6,7 +6,6 @@ import torch
 from torch import Tensor
 from typing import List, Generator
 import dataset_utils as du
-from collections import defaultdict
 
 
 # Adapted from https://github.com/huggingface/sentence-transformers/blob/main/examples/sentence_transformer/applications/semantic-search/semantic_search_publications.py
@@ -46,22 +45,16 @@ class STRetriever():
                 max_shard_size="100MB",
             )
         print("Dataset loaded")
-        # print("Creating index")
-        # self.index = {paper["pmcid"]: i for i, paper in enumerate(self.papers)}
-        # print("Index created")
         self.corpus_embeddings = None
 
-    def _create_index(self):
-        ...
     def supporting_docs(self, query,pmcid: str, top_k: int) -> list[dict[str, str]]:
         print("Retrieving supporting documents")
-        results_to_find = max(10, 2 * top_k)
         query_embeddings = self._get_embeddings(query)
         hits = util.semantic_search(
             query_embeddings,
             self.corpus_embeddings,
             score_function=util.dot_score,
-            top_k=results_to_find,
+            top_k=top_k,
         )
         hits = hits[0]
         supporting_docs = []

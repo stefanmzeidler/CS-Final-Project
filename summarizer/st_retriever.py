@@ -26,7 +26,7 @@ class STRetriever:
         :param dataset_name: The name of the dataset to use. If load_local is true, searches for an existing dataset. Otherwise, should be the HuggingFace dataset to use. Must be in namespace/dataset format. Default is uiyunkim-hub/pubmed-abstract.
         :param split: The dataset split to use. Default is train.
         :param data_columns: The column names to use for creating embeddings. Default is "title", "abstract", "body_text".
-        :param load_local: Whether to load the dataset from disk. Default is False.
+        :param load_local: Whether to load the dataset from disk. Default is True.
         """
         if data_columns is None:
             self.data_columns = ["title", "abstract", "body_text"]

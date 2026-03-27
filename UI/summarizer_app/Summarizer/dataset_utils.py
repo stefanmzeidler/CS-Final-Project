@@ -65,12 +65,12 @@ def _parse_pmc_file(xml_file, xml_string=False) -> Dict[str, str]:
     }
 
 
-def _project_root()->Path:
-    return Path(__file__).resolve().parent.parent
+# def _package_root()->Path:
+#     return Path(__file__).resolve().parent
 
 
 def _open_config() -> Any:
-    with open(_project_root() / "config.json", "r", encoding="utf-8") as f:
+    with open("config.json", "r", encoding="utf-8") as f:
         cfg = json.load(f)
     return cfg
 
@@ -85,9 +85,13 @@ def get_data_path(dataset_name: str, data_type: str) -> str | Path:
     if data_type != "dataset" and data_type != "embeddings":
         raise ValueError("datatype must be 'dataset' or 'embeddings'")
     cfg = _open_config()
-    return _project_root() / cfg["paths"]["data"].format(
+    return Path(cfg["paths"]["data"].format(
         dataset_name=dataset_name, data_type=data_type
-    )
+    ))
+
+def get_yaml_path()-> Path:
+    cfg = _open_config()
+    return Path(cfg["paths"]["yaml"])
 
 
 def get_audiences() -> Dict[str, str]:

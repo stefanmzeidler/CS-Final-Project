@@ -1,22 +1,31 @@
-from st_retriever import STRetriever
-from reranker import Reranker
-from llm import LLM
+from .st_retriever import STRetriever
+from .reranker import Reranker
+from .llm import LLM
 from typing import Dict
-import dataset_utils as du
+from . import dataset_utils as du
 
 
 class Summarizer:
-    def __init__(self, st_retriever: STRetriever, reranker: Reranker, llm: LLM):
+    def __init__(self, st_retriever: STRetriever=None, reranker: Reranker=None, llm: LLM=None):
         """
         Class that summarizes PubMedCentral articles for different audiences specified in the config file using an LLM and RAG.
         :param st_retriever: STRetriever used to retrieve articles.
         :param reranker: Reranker used to rerank retrieved articles..
         :param llm: The LLM used to summarize the article.
         """
-        self.st_retriever = st_retriever
+        if st_retriever is None:
+            self.st_retriever = STRetriever()
+        else:
+            self.st_retriever = st_retriever
         self.st_retriever.load_embeddings()
-        self.reranker = reranker
-        self.llm = llm
+        if reranker is None:
+            self.reranker = Reranker()
+        else:
+            self.reranker = reranker
+        if llm is None:
+            self.llm = LLM()
+        else:
+            self.llm = llm
 
     def summarize(
         self,

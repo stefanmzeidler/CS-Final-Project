@@ -1,0 +1,111 @@
+<!--The following file was generated using ChatGPT. https://chatgpt.com/share/69c5d312-ed50-8329-96b5-960594862bc4 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PMC Summary Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .search-container {
+            margin-bottom: 25px;
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        button.search-btn {
+            padding: 10px 18px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .button-group {
+            margin-bottom: 20px;
+        }
+
+        .level-btn {
+            padding: 10px 16px;
+            margin-right: 10px;
+            font-size: 15px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            background-color: white;
+            border-radius: 5px;
+        }
+
+        .level-btn.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .summary-box {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 180px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="search-container">
+        <form method="GET" action="">
+            <input
+                type="text"
+                name="pmc_id"
+                placeholder="Enter PMC_ID"
+                value="{{ request.GET.pmc_id|default:'' }}"
+            >
+            <button type="submit" class="search-btn">Search</button>
+        </form>
+    </div>
+
+    <div class="button-group">
+        <button class="level-btn active" onclick="showSummary('basic', this)">Basic</button>
+        <button class="level-btn" onclick="showSummary('college', this)">College</button>
+        <button class="level-btn" onclick="showSummary('professional', this)">Professional</button>
+    </div>
+
+    <div class="summary-box" id="summary-box">
+        {{ basic_summary|default:"No summary available yet." }}
+    </div>
+
+    <script>
+        const summaries = {
+            basic: `{{ basic_summary|escapejs }}`,
+            college: `{{ college_summary|escapejs }}`,
+            professional: `{{ professional_summary|escapejs }}`
+        };
+
+        function showSummary(level, buttonElement) {
+            document.getElementById("summary-box").innerText =
+                summaries[level] || "No summary available for this level.";
+
+            document.querySelectorAll(".level-btn").forEach(btn => {
+                btn.classList.remove("active");
+            });
+            buttonElement.classList.add("active");
+        }
+    </script>
+
+</body>
+</html>

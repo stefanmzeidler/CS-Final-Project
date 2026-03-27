@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import yaml
 from collections import defaultdict
 from typing import Dict
-
+from . import dataset_utils as du
 
 class LLM:
     def __init__(self, model_name="gemini-2.0-flash"):
@@ -39,7 +39,7 @@ class LLM:
         """
         print("Querying llm")
         summaries = defaultdict(str)
-        with open("prompts.yaml") as f:
+        with open(du.get_yaml_path()) as f:
             prompts = yaml.safe_load(f)
 
         for key, audience in audiences.items():

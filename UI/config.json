@@ -1,6 +1,7 @@
 {
   "paths": {
-    "data": "data/{dataset_name}/{data_type}"
+    "data": "summarizer_app/data/{dataset_name}/{data_type}",
+    "yaml": "summarizer_app/prompts.yaml"
   },
   "audiences": {
     "basic" : "lay person with an 8th grade reading level",

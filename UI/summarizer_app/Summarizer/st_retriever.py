@@ -1,11 +1,10 @@
 import os
 from datasets import load_dataset, IterableDataset
-from numpy import ndarray
 from sentence_transformers import SentenceTransformer, util
 import torch
 from torch import Tensor
 from typing import List, Generator
-import dataset_utils as du
+from . import dataset_utils as du
 
 
 # Adapted from https://github.com/huggingface/sentence-transformers/blob/main/examples/sentence_transformer/applications/semantic-search/semantic_search_publications.py

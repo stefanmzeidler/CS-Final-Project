@@ -1,5 +1,5 @@
 from typing import List, Dict
-import dataset_utils as du
+from . import dataset_utils as du
 from sentence_transformers.cross_encoder import CrossEncoder
 
 class Reranker:

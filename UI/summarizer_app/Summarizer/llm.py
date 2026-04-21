@@ -8,7 +8,7 @@ from typing import Dict
 from . import dataset_utils as du
 
 class LLM:
-    def __init__(self, model_name="gemini-2.0-flash"):
+    def __init__(self, model_name="gemini-2.5-flash"):
         """
         Wrapper class for a gemini LLM.
         :param model_name: The name of the model.
@@ -17,7 +17,12 @@ class LLM:
         self.model_name = model_name
         load_dotenv()
         api_key = os.getenv("GEMINI_API_KEY")
-        self.client = genai.Client(api_key=api_key)
+        # self.client = genai.Client(api_key=api_key)
+        self.client = genai.Client(
+            vertexai=True,
+            project="rag2-477421",
+            location="global",
+        )
         print("Initialization done")
 
     def query_model(

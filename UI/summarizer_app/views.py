@@ -22,7 +22,7 @@ def summarize(request):
                 context={"basic_summary":article.basic_summary, "college_summary":article.college_summary, "professional_summary": article.professional_summary},
             )
         except Summary.DoesNotExist:
-            print("No existing summaries in database found found")
+            print("No existing summaries in database found")
             print("Generating summaries for pmcd id: {}".format(pmc_id))
             summarizer = get_summarizer()
             summaries = summarizer.summarize(pmc_id)

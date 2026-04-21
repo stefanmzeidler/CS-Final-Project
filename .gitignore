@@ -7,8 +7,6 @@ __pycache__/
 *.so
 
 #dataset extensions
-*.pt
-*.arrow
 *.parquet
 
 # Distribution / packaging

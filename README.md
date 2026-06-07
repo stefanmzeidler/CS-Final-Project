@@ -1,18 +1,18 @@
 ## CS Final Project
-Stefan Zeidler
-Department of Computer Science
-University of Wisconsin - Milwaukee
-
-
-Notice: This repository is a proof of concept only and should not be used in any production capacity.
-
+Stefan Zeidler  
+Department of Computer Science  
+University of Wisconsin - Milwaukee  
+  
+  
+Notice: This repository is a proof of concept only and should not be used in any production capacity.  
+  
 #Introduction
-This project is intended as a proof of concept for a generative-AI based system to combat medical dis- and misinformation. One of the main barriers for the average person to understand medical information is the high reading level and expert-level domain knowledge required to understand medical journal articles. While traditional NLP models can summarize articles, they struggle to make high-level text easier to read and are completely unable to infer what a reader does and does not know. 
-
-By leveraging the generative capaiblities of large language models, we can both change the reading level to the match the target audience and provide additional context as needed to help the reader understand the material. To hinder large language models' penchant for hallucinations, a two-level information retrieval system has been implemented for retrieval augmented generation to provide relevant journal articles as supporting documentation. 
-
-The (barebones) UI employs "human-in-the-loop" design principles to avoid alienating users and to promote user agency. The system should not dictate what a user needs, but allow them to choose.
-
+This project is intended as a proof of concept for a generative-AI based system to combat medical dis- and misinformation. One of the main barriers for the average person to understand medical information is the high reading level and expert-level domain knowledge required to understand medical journal articles. While traditional NLP models can summarize articles, they struggle to make high-level text easier to read and are completely unable to infer what a reader does and does not know.   
+  
+By leveraging the generative capaiblities of large language models, we can both change the reading level to the match the target audience and provide additional context as needed to help the reader understand the material. To hinder large language models' penchant for hallucinations, a two-level information retrieval system has been implemented for retrieval augmented generation to provide relevant journal articles as supporting documentation.  
+  
+The (barebones) UI employs "human-in-the-loop" design principles to avoid alienating users and to promote user agency. The system should not dictate what a user needs, but allow them to choose.  
+  
 #Design
 This system is designed to summarize articles from the [PubMed Central Open Access Subset]([url](https://pmc.ncbi.nlm.nih.gov/tools/openftlist/)) from the National Library of Medicine. 
 
